@@ -1,4 +1,4 @@
-from itertools import combinations
+from itertools import combinations_with_replacement
 
 import seaborn as sn
 import pandas as pd
@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 
 from strategy import AlwaysGoodState, TitForTat, TitForTatBad, \
                      GrimTrigger, GrimTriggerForgiveness, AlwaysBadState, \
-                     AllRandom
+                     AllRandom, GoodWhenOddPeriod, GoodWhenEvenPeriod, \
+                     TitForTatReverse, TitForTatLast10
 
 classes = [AlwaysGoodState,
            TitForTat,
@@ -14,7 +15,11 @@ classes = [AlwaysGoodState,
            GrimTrigger,
            GrimTriggerForgiveness,
            AlwaysBadState,
-           AllRandom]
+           AllRandom,
+           GoodWhenOddPeriod,
+           GoodWhenEvenPeriod,
+           TitForTatReverse,
+           TitForTatLast10]
 valid_actions = ['cooperate', 'defect']
 
 R = 10000
@@ -50,7 +55,7 @@ def play(player1, player2):
     return sum(scores_1), sum(scores_2)
 
 ary = [[None] * len(classes) for i in range(len(classes))]
-for (id_1, class_1), (id_2, class_2) in combinations(enumerate(classes), 2):
+for (id_1, class_1), (id_2, class_2) in combinations_with_replacement(enumerate(classes), 2):
     
     sum_scores_1, sum_scores_2 = [], []
     for i in range(R):
@@ -61,8 +66,12 @@ for (id_1, class_1), (id_2, class_2) in combinations(enumerate(classes), 2):
     avg_score_1 = sum(sum_scores_1) / R
     avg_score_2 = sum(sum_scores_2) / R
 
-    ary[id_1][id_2] = avg_score_1
-    ary[id_2][id_1] = avg_score_2
+    if id_1 != id_2:
+        ary[id_1][id_2] = avg_score_1
+        ary[id_2][id_1] = avg_score_2
+    else:
+        avg_score = (avg_score_1 + avg_score_2) / 2
+        ary[id_1][id_1] = avg_score
     
     print(class_1.name.rjust(30), ':', avg_score_1)
     print(class_2.name.rjust(30), ':', avg_score_2)
@@ -74,7 +83,7 @@ df_cm = pd.DataFrame(
     columns = [c.name for c in classes]
 )
 
-plt.figure(figsize = (10,7))
+plt.figure()
 plt.title('Simulation %d Times of %d-round Game' % (R, T))
 sn.heatmap(df_cm, annot=True, fmt='g')
 plt.show()

@@ -1,4 +1,5 @@
 from random import random as rand
+from collections import Counter
 
 class Strategy(object):
 
@@ -128,4 +129,71 @@ class AllRandom(Strategy):
         else:
             action = "defect"
         
+        return action
+
+class GoodWhenOddPeriod(Strategy):
+
+    name = 'Good at Odd'
+
+    def decide(self, period, actions_own, actions_opponent):
+
+        if period % 2 == 1:
+            action = "cooperate"
+        else:
+            action = "defect"
+        
+        return action
+
+class GoodWhenEvenPeriod(Strategy):
+
+    name = 'Good at Even'
+
+    def decide(self, period, actions_own, actions_opponent):
+
+        if period % 2 == 0:
+            action = "cooperate"
+        else:
+            action = "defect"
+        
+        return action
+
+class TitForTatReverse(Strategy):
+
+    name = 'Reverse Tit Tat'
+
+    def decide(self, period, actions_own, actions_opponent):
+
+        if period == 1:
+            action = "defect"
+        
+        if period > 1:
+            opp_action = actions_opponent[period-1]
+            if opp_action == "cooperate":
+                action = "defect"
+            else:
+                action = "cooperate"
+        
+        return action
+
+class TitForTatLast10(Strategy):
+
+    name = 'Tit Tat Last10'
+
+    def decide(self, period, actions_own, actions_opponent):
+
+        if period == 1:
+            action = "cooperate"
+        
+        if period > 1:
+            actions = actions_opponent[-10:]
+            counter = Counter(actions)
+            if counter['cooperate'] > counter['defect']:
+                action = 'cooperate'
+            elif counter['cooperate'] < counter['defect']:
+                action = 'defect'
+            elif rand() > 0.5:
+                action = 'cooperate'
+            else:
+                action = 'defect'
+
         return action
